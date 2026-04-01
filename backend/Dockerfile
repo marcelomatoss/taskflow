@@ -18,7 +18,7 @@ FROM base AS production
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npm install prisma
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
@@ -27,4 +27,4 @@ COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node dist/main.js"]
