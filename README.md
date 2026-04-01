@@ -103,8 +103,8 @@ npm run dev                 # Inicia em http://localhost:3000
 
 | Email | Senha |
 |-------|-------|
-| joao@example.com | password123 |
-| maria@example.com | password123 |
+| joao.silva@example.com | password123 |
+| maria.santos@example.com | password123 |
 
 ## Decisões Técnicas e Arquiteturais
 
