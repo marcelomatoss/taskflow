@@ -33,3 +33,4 @@ backend/prisma/*.db
 
 # Docker
 docker-compose.override.yml
+INTERVIEW_PREP.md
