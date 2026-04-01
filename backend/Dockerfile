@@ -17,13 +17,10 @@ RUN npx nest build
 FROM base AS production
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev && npm install prisma
-
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 
 EXPOSE 3001
 
