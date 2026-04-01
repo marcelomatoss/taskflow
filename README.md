@@ -2,6 +2,14 @@
 
 Full-stack MVP de gerenciamento de projetos e tarefas, construído com Next.js, NestJS, PostgreSQL e Prisma.
 
+## Deploy
+
+| Serviço | URL |
+|---------|-----|
+| Frontend | https://frontend-wheat-nine-f2f3cx457c.vercel.app |
+| Backend API | https://backend-production-9d35.up.railway.app |
+| Swagger | https://backend-production-9d35.up.railway.app/api/docs |
+
 ## Stack
 
 | Camada | Tecnologia |
