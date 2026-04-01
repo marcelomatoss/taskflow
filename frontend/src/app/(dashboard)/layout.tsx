@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useAuth } from '@/contexts/auth-context';
+import { useI18n } from '@/lib/i18n';
+import { LanguageToggle } from '@/components/language-toggle';
 import { Sun, Moon, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -15,6 +17,7 @@ export default function DashboardLayout({
   const { user, isLoading } = useRequireAuth();
   const { logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { t } = useI18n();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -46,10 +49,11 @@ export default function DashboardLayout({
         {/* Right: Desktop */}
         <div className="hidden md:flex items-center gap-4">
           <span className="text-sm text-muted-foreground">{user.name}</span>
+          <LanguageToggle />
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Alternar tema"
+            aria-label={t('ariaToggleTheme')}
           >
             {theme === 'dark' ? (
               <Sun className="w-5 h-5" />
@@ -60,7 +64,7 @@ export default function DashboardLayout({
           <button
             onClick={logout}
             className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Sair"
+            aria-label={t('ariaLogout')}
           >
             <LogOut className="w-5 h-5" />
           </button>
@@ -83,6 +87,9 @@ export default function DashboardLayout({
       {mobileMenuOpen && (
         <div className="md:hidden bg-background border-b border-border px-4 py-3 space-y-2">
           <p className="text-sm text-muted-foreground px-2">{user.name}</p>
+          <div className="px-2">
+            <LanguageToggle />
+          </div>
           <button
             onClick={() => {
               toggleDarkMode();
@@ -95,7 +102,7 @@ export default function DashboardLayout({
             ) : (
               <Moon className="w-4 h-4" />
             )}
-            {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+            {theme === 'dark' ? t('lightMode') : t('darkMode')}
           </button>
           <button
             onClick={() => {
@@ -105,7 +112,7 @@ export default function DashboardLayout({
             className="flex items-center gap-2 w-full px-2 py-2 rounded-lg hover:bg-muted text-foreground transition-colors text-sm"
           >
             <LogOut className="w-4 h-4" />
-            Sair
+            {t('logout')}
           </button>
         </div>
       )}

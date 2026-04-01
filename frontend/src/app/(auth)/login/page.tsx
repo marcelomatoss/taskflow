@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, Lock, ArrowRight, CheckSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { useI18n } from '@/lib/i18n';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [error, setError] = useState('');
+  const { t } = useI18n();
 
   const {
     register,
@@ -53,9 +55,7 @@ export default function LoginPage() {
             TaskFlow
           </span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Entre na sua conta para continuar
-        </p>
+        <p className="text-sm text-muted-foreground">{t('loginTitle')}</p>
       </div>
 
       {/* Erro */}
@@ -73,7 +73,7 @@ export default function LoginPage() {
             htmlFor="email"
             className="text-sm font-medium text-foreground"
           >
-            E-mail
+            {t('email')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -96,7 +96,7 @@ export default function LoginPage() {
             htmlFor="password"
             className="text-sm font-medium text-foreground"
           >
-            Senha
+            {t('password')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -121,19 +121,19 @@ export default function LoginPage() {
           disabled={isSubmitting}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {isSubmitting ? 'Entrando...' : 'Entrar'}
+          {isSubmitting ? t('loggingIn') : t('login')}
           {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </button>
       </form>
 
       {/* Link para registro */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Não tem uma conta?{' '}
+        {t('noAccount')}{' '}
         <Link
           href="/register"
           className="font-medium text-primary hover:underline"
         >
-          Criar conta
+          {t('registerLink')}
         </Link>
       </p>
     </div>

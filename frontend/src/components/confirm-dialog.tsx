@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export function ConfirmDialog({
   title,
   message,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -54,13 +57,13 @@ export function ConfirmDialog({
             onClick={onClose}
             className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
           >
-            Cancelar
+            {t('cancel')}
           </button>
           <button
             onClick={onConfirm}
             className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
           >
-            Confirmar
+            {t('confirm')}
           </button>
         </div>
       </div>

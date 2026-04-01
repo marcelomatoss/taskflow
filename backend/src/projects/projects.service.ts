@@ -1,14 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
+
+  private getCacheKey(userId: string) {
+    return `projects:${userId}`;
+  }
 
   async create(userId: string, dto: CreateProjectDto) {
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -16,10 +24,16 @@ export class ProjectsService {
         userId,
       },
     });
+    await this.cacheManager.del(this.getCacheKey(userId));
+    return project;
   }
 
   async findAll(userId: string) {
-    return this.prisma.project.findMany({
+    const cacheKey = this.getCacheKey(userId);
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const projects = await this.prisma.project.findMany({
       where: { userId },
       include: {
         _count: {
@@ -28,6 +42,8 @@ export class ProjectsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    await this.cacheManager.set(cacheKey, projects, 30000);
+    return projects;
   }
 
   async findOne(id: string, userId: string) {
@@ -50,17 +66,21 @@ export class ProjectsService {
   async update(id: string, userId: string, dto: UpdateProjectDto) {
     await this.findOne(id, userId);
 
-    return this.prisma.project.update({
+    const project = await this.prisma.project.update({
       where: { id },
       data: dto,
     });
+    await this.cacheManager.del(this.getCacheKey(userId));
+    return project;
   }
 
   async remove(id: string, userId: string) {
     await this.findOne(id, userId);
 
-    return this.prisma.project.delete({
+    const project = await this.prisma.project.delete({
       where: { id },
     });
+    await this.cacheManager.del(this.getCacheKey(userId));
+    return project;
   }
 }

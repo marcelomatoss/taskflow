@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import type { Project } from '@/types';
+import { useI18n } from '@/lib/i18n';
 
 const PRESET_COLORS = [
   '#6366f1', // indigo
@@ -39,11 +40,13 @@ export function ProjectModal({
   onSubmit,
   project,
 }: ProjectModalProps) {
+  const { t } = useI18n();
+
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ProjectFormData>({
@@ -55,7 +58,7 @@ export function ProjectModal({
     },
   });
 
-  const selectedColor = watch('color');
+  const selectedColor = useWatch({ control, name: 'color' });
 
   useEffect(() => {
     if (isOpen) {
@@ -93,7 +96,7 @@ export function ProjectModal({
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">
-            {project ? 'Editar Projeto' : 'Novo Projeto'}
+            {project ? t('editProjectTitle') : t('createProjectTitle')}
           </h2>
           <button
             onClick={onClose}
@@ -106,12 +109,12 @@ export function ProjectModal({
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Titulo *
+              {t('projectTitleLabel')}
             </label>
             <input
               {...register('title')}
               className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Nome do projeto"
+              placeholder={t('projectTitlePlaceholder')}
             />
             {errors.title && (
               <p className="text-destructive text-sm mt-1">
@@ -122,19 +125,19 @@ export function ProjectModal({
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Descricao
+              {t('projectDescriptionLabel')}
             </label>
             <textarea
               {...register('description')}
               className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               rows={3}
-              placeholder="Descricao do projeto (opcional)"
+              placeholder={t('projectDescriptionPlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Cor
+              {t('projectColorLabel')}
             </label>
             <div className="flex gap-2 flex-wrap">
               {PRESET_COLORS.map((color) => (
@@ -161,14 +164,14 @@ export function ProjectModal({
               onClick={onClose}
               className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
             >
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Salvando...' : project ? 'Salvar' : 'Criar'}
+              {isSubmitting ? t('saving') : project ? t('save') : t('create')}
             </button>
           </div>
         </form>

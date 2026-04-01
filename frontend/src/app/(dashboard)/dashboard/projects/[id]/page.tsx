@@ -7,6 +7,7 @@ import type { Project, Task, TaskStatus, Priority } from '@/types';
 import { TaskModal } from '@/components/task-modal';
 import { ProjectModal } from '@/components/project-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { useI18n } from '@/lib/i18n';
 import {
   ArrowLeft,
   Plus,
@@ -17,23 +18,29 @@ import {
   CheckSquare,
 } from 'lucide-react';
 
-const COLUMNS: { key: TaskStatus; label: string }[] = [
-  { key: 'TODO', label: 'A Fazer' },
-  { key: 'IN_PROGRESS', label: 'Em Progresso' },
-  { key: 'DONE', label: 'Concluido' },
-];
-
-const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> =
-  {
-    LOW: { label: 'Baixa', className: 'bg-success/20 text-success' },
-    MEDIUM: { label: 'Media', className: 'bg-warning/20 text-warning' },
-    HIGH: { label: 'Alta', className: 'bg-destructive/20 text-destructive' },
-  };
+const PRIORITY_CLASSNAMES: Record<Priority, string> = {
+  LOW: 'bg-success/20 text-success',
+  MEDIUM: 'bg-warning/20 text-warning',
+  HIGH: 'bg-destructive/20 text-destructive',
+};
 
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id as string;
+  const { t, locale } = useI18n();
+
+  const columns: { key: TaskStatus; label: string }[] = [
+    { key: 'TODO', label: t('todo') },
+    { key: 'IN_PROGRESS', label: t('inProgress') },
+    { key: 'DONE', label: t('done') },
+  ];
+
+  const priorityLabels: Record<Priority, string> = {
+    LOW: t('low'),
+    MEDIUM: t('medium'),
+    HIGH: t('high'),
+  };
 
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +126,7 @@ export default function ProjectPage() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('pt-BR', {
+    return new Date(dateStr).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
     });
@@ -189,13 +196,13 @@ export default function ProjectPage() {
   if (!project) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-muted-foreground mb-4">Projeto nao encontrado.</p>
+        <p className="text-muted-foreground mb-4">{t('projectNotFound')}</p>
         <button
           onClick={() => router.push('/dashboard')}
           className="flex items-center gap-2 text-primary hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar ao Dashboard
+          {t('backToDashboard')}
         </button>
       </div>
     );
@@ -209,7 +216,7 @@ export default function ProjectPage() {
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
       >
         <ArrowLeft className="w-4 h-4" />
-        Voltar ao Dashboard
+        {t('backToDashboard')}
       </button>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -236,7 +243,7 @@ export default function ProjectPage() {
             className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors text-sm"
           >
             <Pencil className="w-4 h-4" />
-            Editar Projeto
+            {t('editProject')}
           </button>
           <button
             onClick={() => {
@@ -247,14 +254,14 @@ export default function ProjectPage() {
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm"
           >
             <Plus className="w-4 h-4" />
-            Nova Tarefa
+            {t('newTask')}
           </button>
         </div>
       </div>
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {COLUMNS.map((column) => {
+        {columns.map((column) => {
           const tasks = getTasksByStatus(column.key);
           return (
             <div
@@ -285,7 +292,7 @@ export default function ProjectPage() {
                     setTaskModalOpen(true);
                   }}
                   className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={`Adicionar tarefa em ${column.label}`}
+                  aria-label={t('ariaAddTaskIn', { column: column.label })}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -317,7 +324,7 @@ export default function ProjectPage() {
                           setDeleteTaskTarget(task);
                         }}
                         className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted text-muted-foreground hover:text-destructive transition-all ml-1"
-                        aria-label="Excluir tarefa"
+                        aria-label={t('ariaDeleteTask')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -331,10 +338,10 @@ export default function ProjectPage() {
 
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_CONFIG[task.priority].className}`}
+                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_CLASSNAMES[task.priority]}`}
                       >
                         <Flag className="w-3 h-3" />
-                        {PRIORITY_CONFIG[task.priority].label}
+                        {priorityLabels[task.priority]}
                       </span>
 
                       {task.dueDate && (
@@ -347,8 +354,9 @@ export default function ProjectPage() {
 
                     {/* Botoes de mudanca rapida de status */}
                     <div className="flex gap-1 mt-2 pt-2 border-t border-border">
-                      {COLUMNS.filter((c) => c.key !== task.status).map(
-                        (col) => (
+                      {columns
+                        .filter((c) => c.key !== task.status)
+                        .map((col) => (
                           <button
                             key={col.key}
                             onClick={(e) => {
@@ -360,15 +368,14 @@ export default function ProjectPage() {
                             <CheckSquare className="w-3 h-3" />
                             {col.label}
                           </button>
-                        ),
-                      )}
+                        ))}
                     </div>
                   </div>
                 ))}
 
                 {tasks.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-8">
-                    Nenhuma tarefa
+                    {t('noTasks')}
                   </p>
                 )}
               </div>
@@ -403,8 +410,8 @@ export default function ProjectPage() {
         isOpen={!!deleteTaskTarget}
         onClose={() => setDeleteTaskTarget(null)}
         onConfirm={handleDeleteTask}
-        title="Excluir Tarefa"
-        message={`Tem certeza que deseja excluir a tarefa "${deleteTaskTarget?.title}"?`}
+        title={t('deleteTask')}
+        message={t('deleteTaskMsg', { name: deleteTaskTarget?.title || '' })}
       />
     </div>
   );

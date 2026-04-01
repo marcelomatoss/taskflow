@@ -29,6 +29,9 @@ Full-stack MVP de gerenciamento de projetos e tarefas, construído com Next.js, 
 - **Tarefas** — CRUD com status (TODO, IN_PROGRESS, DONE), prioridade (LOW, MEDIUM, HIGH) e data de entrega
 - **Board Kanban** — Visualização de tarefas em colunas por status
 - **Dark Mode** — Alternância entre tema claro e escuro
+- **Internacionalização (i18n)** — Suporte a PT-BR e inglês com toggle de idioma
+- **Cache** — Cache in-memory no backend com invalidação automática (30s TTL)
+- **Logging Estruturado** — Logs JSON com método, URL, status, duração, userId e IP
 - **Responsivo** — Interface adaptável para mobile e desktop
 - **Swagger** — Documentação da API em `/api/docs`
 - **Seed de dados** — Dados pré-populados para facilitar avaliação
@@ -150,6 +153,8 @@ npm run dev                 # Inicia em http://localhost:3000
 | `@prisma/client`, `@prisma/adapter-pg`, `pg` | ORM type-safe com geração de tipos a partir do schema. Adapter pg necessário no Prisma 7 |
 | `class-validator`, `class-transformer` | Validação declarativa de DTOs via decorators — integração nativa com NestJS pipes |
 | `bcrypt` | Hash de senhas com salt — padrão da indústria, implementação em C (performática) |
+| `@nestjs/cache-manager`, `cache-manager` | Cache in-memory para respostas de listagem, com invalidação automática em CUD |
+| `tsx` | Executa `prisma.config.ts` em produção — necessário para o Prisma 7 |
 | `reflect-metadata` | Necessário para o sistema de decorators do NestJS |
 | `rxjs` | Dependência core do NestJS para programação reativa |
 
@@ -206,6 +211,7 @@ taskflow/
 │       ├── auth/               # Autenticação JWT
 │       ├── projects/           # CRUD de projetos
 │       ├── tasks/              # CRUD de tarefas
+│       ├── common/             # Interceptors (logging) e filters (exceptions)
 │       ├── prisma/             # PrismaService global
 │       └── main.ts             # Bootstrap + Swagger
 ├── frontend/
@@ -216,7 +222,7 @@ taskflow/
 │       ├── components/         # Componentes reutilizáveis
 │       ├── contexts/           # AuthContext
 │       ├── hooks/              # Custom hooks
-│       ├── lib/                # API client
+│       ├── lib/                # API client, i18n
 │       └── types/              # TypeScript interfaces
 ├── docker-compose.yml          # PostgreSQL
 └── README.md
@@ -230,6 +236,9 @@ taskflow/
 - [x] Validação de dados no frontend (zod) e backend (class-validator)
 - [x] Seed de dados para facilitar avaliação
 - [x] Dark mode com suporte a preferência do sistema
+- [x] Internacionalização (i18n) — PT-BR e inglês com toggle de idioma
+- [x] Cache in-memory (@nestjs/cache-manager com invalidação automática)
+- [x] Logging estruturado (JSON logs com interceptor global + exception filter)
 - [x] Swagger em /api/docs
 
 ## Scripts úteis

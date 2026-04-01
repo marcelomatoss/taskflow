@@ -24,30 +24,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-      api.auth
-        .me()
-        .then((user) => {
-          setUser(user);
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-          setToken(null);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
+    const validateToken = async () => {
+      if (!token) return;
+      try {
+        const userData = await api.auth.me();
+        setUser(userData);
+      } catch {
+        localStorage.removeItem('token');
+        setToken(null);
+      }
+    };
+
+    validateToken().finally(() => setIsLoading(false));
+  }, [token]);
 
   const login = useCallback(async (email: string, password: string) => {
     const response = await api.auth.login({ email, password });

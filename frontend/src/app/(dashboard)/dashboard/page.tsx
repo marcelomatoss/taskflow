@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import type { Project } from '@/types';
 import { ProjectModal } from '@/components/project-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { useI18n } from '@/lib/i18n';
 import { Plus, Trash2, Pencil, Folder, Calendar } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [editingProject, setEditingProject] = useState<Project | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const router = useRouter();
+  const { t, locale } = useI18n();
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -59,7 +61,7 @@ export default function DashboardPage() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('pt-BR', {
+    return new Date(dateStr).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -90,7 +92,9 @@ export default function DashboardPage() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Meus Projetos</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {t('myProjects')}
+        </h1>
         <button
           onClick={() => {
             setEditingProject(undefined);
@@ -99,7 +103,7 @@ export default function DashboardPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Novo Projeto
+          {t('newProject')}
         </button>
       </div>
 
@@ -108,11 +112,9 @@ export default function DashboardPage() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Folder className="w-16 h-16 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">
-            Nenhum projeto ainda
+            {t('noProjects')}
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Crie seu primeiro projeto para comecar a organizar suas tarefas!
-          </p>
+          <p className="text-muted-foreground mb-6">{t('noProjectsDesc')}</p>
           <button
             onClick={() => {
               setEditingProject(undefined);
@@ -121,7 +123,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Criar Projeto
+            {t('createProject')}
           </button>
         </div>
       ) : (
@@ -152,7 +154,7 @@ export default function DashboardPage() {
                         setProjectModalOpen(true);
                       }}
                       className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Editar projeto"
+                      aria-label={t('ariaEditProject')}
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -162,7 +164,7 @@ export default function DashboardPage() {
                         setDeleteTarget(project);
                       }}
                       className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-destructive transition-colors"
-                      aria-label="Excluir projeto"
+                      aria-label={t('ariaDeleteProject')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -183,7 +185,7 @@ export default function DashboardPage() {
                   {project._count && (
                     <span className="bg-background px-2 py-0.5 rounded-full">
                       {project._count.tasks}{' '}
-                      {project._count.tasks === 1 ? 'tarefa' : 'tarefas'}
+                      {project._count.tasks === 1 ? t('task') : t('tasks')}
                     </span>
                   )}
                 </div>
@@ -209,8 +211,8 @@ export default function DashboardPage() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteProject}
-        title="Excluir Projeto"
-        message={`Tem certeza que deseja excluir o projeto "${deleteTarget?.title}"? Todas as tarefas associadas serao removidas.`}
+        title={t('deleteProject')}
+        message={t('deleteProjectMsg', { name: deleteTarget?.title || '' })}
       />
     </div>
   );

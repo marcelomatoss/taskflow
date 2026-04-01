@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Prisma, Priority, TaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
@@ -10,7 +7,18 @@ import { UpdateTaskDto } from './dto/update-task.dto.js';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
+
+  private getCacheKey(userId: string) {
+    return `tasks:${userId}`;
+  }
+
+  private async invalidateCache(userId: string) {
+    await this.cacheManager.del(this.getCacheKey(userId));
+  }
 
   async create(userId: string, dto: CreateTaskDto) {
     // Verificar se o projeto pertence ao usuario
@@ -22,7 +30,7 @@ export class TasksService {
       throw new NotFoundException('Projeto nao encontrado');
     }
 
-    return this.prisma.task.create({
+    const task = await this.prisma.task.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -38,6 +46,8 @@ export class TasksService {
         },
       },
     });
+    await this.invalidateCache(userId);
+    return task;
   }
 
   async findAll(
@@ -56,6 +66,27 @@ export class TasksService {
 
     if (filters?.projectId) {
       where.projectId = filters.projectId;
+    }
+
+    // Cache somente quando nao ha filtros (listagem padrao)
+    const hasFilters =
+      filters?.status || filters?.priority || filters?.projectId;
+    if (!hasFilters) {
+      const cacheKey = this.getCacheKey(userId);
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) return cached;
+
+      const tasks = await this.prisma.task.findMany({
+        where,
+        include: {
+          project: {
+            select: { id: true, title: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      await this.cacheManager.set(cacheKey, tasks, 30000);
+      return tasks;
     }
 
     return this.prisma.task.findMany({
@@ -111,7 +142,7 @@ export class TasksService {
       }),
     };
 
-    return this.prisma.task.update({
+    const task = await this.prisma.task.update({
       where: { id },
       data,
       include: {
@@ -120,13 +151,17 @@ export class TasksService {
         },
       },
     });
+    await this.invalidateCache(userId);
+    return task;
   }
 
   async remove(id: string, userId: string) {
     await this.findOne(id, userId);
 
-    return this.prisma.task.delete({
+    const task = await this.prisma.task.delete({
       where: { id },
     });
+    await this.invalidateCache(userId);
+    return task;
   }
 }

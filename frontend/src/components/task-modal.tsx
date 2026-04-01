@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import type { Task, TaskStatus, Priority } from '@/types';
+import { useI18n } from '@/lib/i18n';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Titulo e obrigatorio'),
@@ -26,18 +27,6 @@ interface TaskModalProps {
   defaultStatus?: TaskStatus;
 }
 
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  TODO: 'A Fazer',
-  IN_PROGRESS: 'Em Progresso',
-  DONE: 'Concluido',
-};
-
-const PRIORITY_LABELS: Record<Priority, string> = {
-  LOW: 'Baixa',
-  MEDIUM: 'Media',
-  HIGH: 'Alta',
-};
-
 export function TaskModal({
   isOpen,
   onClose,
@@ -45,6 +34,20 @@ export function TaskModal({
   task,
   defaultStatus = 'TODO',
 }: TaskModalProps) {
+  const { t } = useI18n();
+
+  const statusLabels: Record<TaskStatus, string> = {
+    TODO: t('todo'),
+    IN_PROGRESS: t('inProgress'),
+    DONE: t('done'),
+  };
+
+  const priorityLabels: Record<Priority, string> = {
+    LOW: t('low'),
+    MEDIUM: t('medium'),
+    HIGH: t('high'),
+  };
+
   const {
     register,
     handleSubmit,
@@ -99,7 +102,7 @@ export function TaskModal({
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">
-            {task ? 'Editar Tarefa' : 'Nova Tarefa'}
+            {task ? t('editTaskTitle') : t('createTaskTitle')}
           </h2>
           <button
             onClick={onClose}
@@ -112,12 +115,12 @@ export function TaskModal({
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Titulo *
+              {t('taskTitleLabel')}
             </label>
             <input
               {...register('title')}
               className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Nome da tarefa"
+              placeholder={t('taskTitlePlaceholder')}
             />
             {errors.title && (
               <p className="text-destructive text-sm mt-1">
@@ -128,26 +131,26 @@ export function TaskModal({
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Descricao
+              {t('taskDescriptionLabel')}
             </label>
             <textarea
               {...register('description')}
               className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               rows={3}
-              placeholder="Descricao da tarefa (opcional)"
+              placeholder={t('taskDescriptionPlaceholder')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Status
+                {t('taskStatusLabel')}
               </label>
               <select
                 {...register('status')}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {(Object.entries(STATUS_LABELS) as [TaskStatus, string][]).map(
+                {(Object.entries(statusLabels) as [TaskStatus, string][]).map(
                   ([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -159,13 +162,13 @@ export function TaskModal({
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Prioridade
+                {t('taskPriorityLabel')}
               </label>
               <select
                 {...register('priority')}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {(Object.entries(PRIORITY_LABELS) as [Priority, string][]).map(
+                {(Object.entries(priorityLabels) as [Priority, string][]).map(
                   ([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -178,7 +181,7 @@ export function TaskModal({
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Data de Entrega
+              {t('taskDueDateLabel')}
             </label>
             <input
               type="date"
@@ -193,14 +196,14 @@ export function TaskModal({
               onClick={onClose}
               className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
             >
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Salvando...' : task ? 'Salvar' : 'Criar'}
+              {isSubmitting ? t('saving') : task ? t('save') : t('create')}
             </button>
           </div>
         </form>
